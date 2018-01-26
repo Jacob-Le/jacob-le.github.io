@@ -143,7 +143,7 @@
 	
 		//Since we are using BufferGeometry, we have defined the attributes that we need manually
      	attribute vec3 position;
-		attribute vec2 texCoords;
+		attribute vec2 uv;
 
 		attribute vec3 normal;
 		uniform vec3 light1_pos;
@@ -152,7 +152,7 @@
 		varying vec3 N, L1, L2, V;
 
 		//link variables between the vertex shader and the fragment shader
-		varying vec2 UV;
+		varying vec2 vUV;
 
 		void main() {
 
@@ -177,7 +177,7 @@
 			V = normalize(-P);
 
 			//pass our interpolated texCoords to the fragment shader
-			UV = texCoords;
+			vUV = uv;
 
         	//of course, we always have to output our vertices in clip coords by multiplying through a projection matrix.
         	gl_Position = projectionMatrix * position; 
@@ -208,7 +208,7 @@
 		uniform float mixVal;
 
 		//this has to have the same name as in the vertex shader. Here, in the fragment shader, we interpolate across the textureCoordinates
-		varying vec2 UV;
+		varying vec2 vUV;
 
       	void main() {
 			vec4 outColor1 = vec4(0.0);
@@ -246,11 +246,13 @@
 				outColor2 = clamp(vec4(color2,1.0), 0.0, 1.0);
 			}
 			
-			vec4 temp1 = texture2D(t1, UV);
+			vec4 temp1 = texture2D(t1, vUV);
 
 			vec4 temp2 = clamp(vec4(ambient, 1.0) + outColor1 + outColor2, 0.0, 1.0); //add the two lights together, make sure final value is between 0.0 and 1.0
 
 			gl_FragColor = vec4(mix(temp1, temp2, mixVal)); 
+		
+			//gl_FragColor = temp2;
 		}
 	
 	</script>
@@ -319,7 +321,7 @@
 				light3_pos: { type: "v3", value: light3_pos },
 				light3_diffuse: { type: "v3", value: light3_diffuse },
 				light3_specular: { type: "v3", value: light3_specular },
-				time: { type: "f", value: 1.0 }
+				time: { type: "f", value: 0.0 }
 			};
 
 			var material1 = new THREE.RawShaderMaterial({
@@ -334,34 +336,39 @@
 			scene.add(mesh1);
 
 			//--------Object 2: textured object w/ Phong shader-----------//
-			var geometry2 = new THREE.BufferGeometry();
+			// var geometry2 = new THREE.BufferGeometry();
 			texture = new THREE.TextureLoader().load( 'Texture1.jpg' );
 
-			var texVertices = new Float32Array( [
-				-1.0, -1.0, 0.0,
-				+1.0, -1.0, 0.0,
-				+1.0, +1.0, 0.0,
+			// var texVertices = new Float32Array( [
+			// 	-1.0, -1.0, 0.0,
+			// 	+1.0, -1.0, 0.0,
+			// 	+1.0, +1.0, 0.0,
 		
-				-1.0, -1.0, 0.0,
-				+1.0, +1.0, 0.0,
-				-1.0, +1.0, 0.0,
+			// 	-1.0, -1.0, 0.0,
+			// 	+1.0, +1.0, 0.0,
+			// 	-1.0, +1.0, 0.0,
 
-			] );
+			// ] );
 
-			var texCoords = new Float32Array( [
-				0.0, 0.0,
-				1.0, 0.0,
-				1.0, 1.0,
+			// var texCoords = new Float32Array( [
+			// 	0.0, 0.0,
+			// 	1.0, 0.0,
+			// 	1.0, 1.0,
 
-				0.0, 0.0,
-				1.0, 1.0,
-				0.0, 1.0,
-			] );
+			// 	0.0, 0.0,
+			// 	1.0, 1.0,
+			// 	0.0, 1.0,
+			// ] );
+
+			// var texNorms = 
+
+			var geometry2 = new THREE.BoxGeometry(2, 2, 0.05);
+
 
 			// itemSize = 3 because there are 3 values (components) per vertex
-			geometry2.addAttribute( 'position', new THREE.BufferAttribute( texVertices, 3 ) );
-			geometry2.addAttribute( 'texCoords', new THREE.BufferAttribute( texCoords, 2 ) );
-
+			// geometry2.addAttribute( 'position', new THREE.BufferAttribute( texVertices, 3 ) );
+			// geometry2.addAttribute( 'texCoords', new THREE.BufferAttribute( texCoords, 2 ) );
+			// geometry2.addAttribute( 'normals', new THREE.BufferAttribute( texNorms, ));
 
 			// materials (ie, linking to the shader program)
 			var uniforms = {
@@ -373,7 +380,7 @@
 				light2_diffuse: { type: "v3", value: light2_diffuse },
 				light2_specular: { type: "v3", value: light2_specular },
 				t1: { type: "t", value: texture  },
-				mixVal: {type: "f", value: 0.0},
+				mixVal: {type: "f", value: 0.5},
 			};
 
 			var texMaterial = new THREE.RawShaderMaterial( {
@@ -384,7 +391,6 @@
 
 	      	texMesh = new THREE.Mesh( geometry2, texMaterial );
 			texMesh.translateX(0.0);
-			texMesh.material.side = THREE.DoubleSide; //to render both sides of triangle
         	texMesh.name = "texPlane"
 			scene.add( texMesh );
 
@@ -455,8 +461,8 @@
 			unique_obj.rotation.y = time * 0.0003;
 
 			//Change lights
-			light1_pos.x = 2 * Math.cos(5*time);
-			light2_pos.y = 3 * Math.sin(5*time);
+			light1_pos.x = 2 * Math.cos(time/5);
+			light2_pos.y = 3 * Math.sin(time/5);
 			light3_pos.z = Math.sin(3*time);
 
 			renderer.render(scene, camera);
