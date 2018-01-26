@@ -3,13 +3,21 @@
 Assignment A:
 ------------
 * 3 Lights that rotate: one vertically, one horizontally and one diagonally, all animated with sin/cos and time functions.
-
-
+* A sphere with a phong shader
+* A thin, textured box with a phong shader
+* A custom shape imported from Blender with a Lambert Material
 
 
 Assignment B:
 ------------
+* A kernel - mix between edge detection (white colored) and sharpen
 
+* X:
+( 0, -1,  0)
+(-1, -5, -1)
+( 0, -1,  0)
+* Y:
+(-1,  0,  1)				 (-2,  0,  2)				 (-1,  0,  1)
 
 
 Assignment C:

@@ -148,8 +148,9 @@
 		attribute vec3 normal;
 		uniform vec3 light1_pos;
 		uniform vec3 light2_pos;
+		uniform vec3 light3_pos;
 
-		varying vec3 N, L1, L2, V;
+		varying vec3 N, L1, L2, L3, V;
 
 		//link variables between the vertex shader and the fragment shader
 		varying vec2 vUV;
@@ -168,10 +169,12 @@
 			//the lights positions are defined in WORLD coordinates, we want to put them in CAMERA coordinates too
 			vec4 L1_cam = viewMatrix * vec4(light1_pos, 1.0);
 			vec4 L2_cam = viewMatrix * vec4(light2_pos, 1.0);
+			vec4 L3_cam = viewMatrix * vec4(light3_pos, 1.0);
 
 			//get the normalized vectors from each light position to the vertex positions
 			L1 = vec3(normalize(L1_cam - position).xyz);
 			L2 = vec3(normalize(L2_cam - position).xyz);
+			L3 = vec3(normalize(L3_cam - position).xyz);
 
 			//reverse direction of position vector to get view vector from vertex to camera
 			V = normalize(-P);
@@ -193,13 +196,15 @@
 		
 		uniform vec3 light1_diffuse;
 		uniform vec3 light2_diffuse;
+		uniform vec3 light3_diffuse;
 		
 		uniform vec3 light1_specular;
 		uniform vec3 light2_specular;
+		uniform vec3 light3_specular;
 
 		float spec_intensity = 32.0; //higher value indicates more rapid falloff
 
-		varying vec3 N, L1, L2, V;
+		varying vec3 N, L1, L2, L3, V;
 
 		//special data type used to access texture stored on GPU
 		uniform sampler2D t1;
@@ -213,6 +218,7 @@
       	void main() {
 			vec4 outColor1 = vec4(0.0);
 			vec4 outColor2 = vec4(0.0);
+			vec4 outColor3 = vec4(0.0);
 			
 			//diffuse light depends on the angle between the light and the vertex normal
 			float diff1 = max(0.0, dot(N, L1)); //just to make sure not negative
@@ -222,7 +228,8 @@
 			float diff2 = max(0.0, dot(N, L2));
 			vec3 color2 = diff2 * light2_diffuse;
 		
-			//Third object will use lambert shading
+			float diff3 = max(0.0, dot(N, L3));
+			vec3 color3 = diff3 * light3_diffuse;
 			
 			//specular highlights depend upon the position/orientation of the camera and the direction of the light reflecting off of this geometry
 			vec3 R1 = normalize(reflect(-L1,N)); //get light vector reflected across the plane defined by the normal of this geometry
@@ -245,10 +252,20 @@
 			} else {
 				outColor2 = clamp(vec4(color2,1.0), 0.0, 1.0);
 			}
+
+			vec3 R3 = normalize(reflect(-L3,N));
+			
+			float spec3 = pow( max(dot(R3, V), 0.0), spec_intensity);
+			color3 += spec3 * light3_specular;
+			if (spec3 > 1.0) {
+				outColor3 = vec4(light3_specular,1.0);
+			} else {
+				outColor3 = clamp(vec4(color3,1.0), 0.0, 1.0);
+			}
 			
 			vec4 temp1 = texture2D(t1, vUV);
 
-			vec4 temp2 = clamp(vec4(ambient, 1.0) + outColor1 + outColor2, 0.0, 1.0); //add the two lights together, make sure final value is between 0.0 and 1.0
+			vec4 temp2 = clamp(vec4(ambient, 1.0) + outColor1 + outColor2 + outColor3, 0.0, 1.0); //add the two lights together, make sure final value is between 0.0 and 1.0
 
 			gl_FragColor = vec4(mix(temp1, temp2, mixVal)); 
 		
@@ -461,9 +478,9 @@
 			unique_obj.rotation.y = time * 0.0003;
 
 			//Change lights
-			light1_pos.x = 2 * Math.cos(time/5);
-			light2_pos.y = 3 * Math.sin(time/5);
-			light3_pos.z = Math.sin(3*time);
+			light1_pos.x = 7 * Math.cos(10 + time/100);
+			light2_pos.y = 7 * Math.sin(10 + time/100);
+			light3_pos.z = 7 * Math.sin(10 + time/100);
 
 			renderer.render(scene, camera);
 		}
