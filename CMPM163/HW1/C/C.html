@@ -15,7 +15,7 @@
 
 <div id="container"></div>
 
-    <script src="js/three.js"></script>
+    <script src="https://threejs.org/build/three.min.js"></script>
   
 
     <script id="vertexShader" type="x-shader/x-vertex">
@@ -76,24 +76,30 @@
 				}
 			}
 				        
-			if (C.r >= 0.5) { //cell is alive
+			if (C.r <= 0.33) { //cell is hard
 				if (cnt == 2 || cnt == 3) {
 					//Any live cell with two or three live neighbours lives on to the next generation.
 				
-					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+					gl_FragColor = vec4(1.0,0.0,0.0,1.0);
 				} else {
 					//Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
 					//Any live cell with more than three live neighbours dies, as if by overpopulation.
 
-					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
-				}
-			} else { //cell is dead
+					gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+                }
+            } else if(0.33 < C.r && C.r <= 0.66){ //cell is soft
+                if(cnt == 2 || cnt == 3){
+                    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+                }else {
+                    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+                }
+			} else if(0.66 < C.r){ //cell is dead
 				if (cnt == 3) {
 					//Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 
-					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+					gl_FragColor = vec4(1.0,0.0,0.0,1.0);
 				} else {
-					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+					gl_FragColor = vec4(0.0,0.0,1.0,1.0);
 
 				}
 			}
