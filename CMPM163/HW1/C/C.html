@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>demo - Phong shader</title>
+		<title>CMPM163_HW1C</title>
 		<meta charset="utf-8">
 		<style>
 			body {
@@ -69,37 +69,42 @@
 			arr[6] = texture2D( bufferTexture, vec2( left , cy ));   //W
 			arr[7] = texture2D( bufferTexture, vec2( left , up ));   //NW
 
-			int cnt = 0;
+			int hrd = 0;
+			int sft = 0;
+
+			vec4 hrd_color = vec4(0.16,0.5,1.0,1.0);
+			vec4 sft_color = vec4(0.101, 0.874, 0.99, 1.0);
+
 			for(int i=0;i<8;i++){
-				if (arr[i].r > 0.5) {
-					cnt++;
+				if (arr[i].b == 1.0) {
+					hrd++;
+				}else if (arr[i].b < 1.0 && arr[i].b != 0.0){
+					sft++;
 				}
 			}
 				        
-			if (C.r <= 0.33) { //cell is hard
-				if (cnt == 2 || cnt == 3) {
-					//Any live cell with two or three live neighbours lives on to the next generation.
-				
-					gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+			if (C.b == 1.0) { //cell is hard
+				if (hrd > 5) {
+					//Any hard cell with four or more hard neighbours lives on to the next generation.
+					gl_FragColor = hrd_color;
 				} else {
-					//Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
-					//Any live cell with more than three live neighbours dies, as if by overpopulation.
-
-					gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+					//Any hard cell with fewer than two hard neighbours dies, as if caused by melting.
+					gl_FragColor = sft_color;
+				}
+            } else if(C.b < 1.0 && C.b != 0.0){ //cell is soft
+                if(sft > 5){
+                    gl_FragColor = sft_color;
+                }else if(hrd > 5){
+					gl_FragColor = hrd_color;
+				}else { //dead
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
                 }
-            } else if(0.33 < C.r && C.r <= 0.66){ //cell is soft
-                if(cnt == 2 || cnt == 3){
-                    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-                }else {
-                    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-                }
-			} else if(0.66 < C.r){ //cell is dead
-				if (cnt == 3) {
+			} else { //cell is dead
+				if (hrd < 5) {
 					//Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-
-					gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+					gl_FragColor = sft_color;
 				} else {
-					gl_FragColor = vec4(0.0,0.0,1.0,1.0);
+					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 
 				}
 			}
@@ -156,12 +161,8 @@ function FBO_setup(){
 	bufferScene = new THREE.Scene();
 	
 	//Create 2 buffer textures
-	//FBO_A = new THREE.WebGLRenderTarget( resX, resY );
-	//FBO_B = new THREE.WebGLRenderTarget( resX, resY ); 
 	FBO_A = new THREE.WebGLRenderTarget( resX, resY, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
-	FBO_B = new THREE.WebGLRenderTarget( resX, resY, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter} );
-
-
+	FBO_B = new THREE.WebGLRenderTarget( resX, resY, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 	
 	//Begin by passing an initial "seed" texture to shader, containing randomly placed cells
 	var dataTexture = createDataTexture();

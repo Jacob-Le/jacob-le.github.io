@@ -17,12 +17,16 @@ Assignment B:
 (-1, -5, -1)
 ( 0, -1,  0)
 * Y:
-(-1,  0,  1)				 (-2,  0,  2)				 (-1,  0,  1)
+(-1,  0,  1)
+(-2,  0,  2)
+(-1,  0,  1)
 
 
 Assignment C:
 ------------
-
+* Three state cellular automata
+* 2 Parts: First is where "paths" are carved out
+* Second part is where paths stop appearing and holes form a geometric "maze" (The values are stuck going back and forth).
 
 
 Assignment D:
