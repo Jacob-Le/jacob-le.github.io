@@ -15,13 +15,11 @@
 
 		<div id="container"></div>
 
-		<script src="../js/three.js"></script>
-		<script src="../js/dat.gui.min.js"></script>
-		<script src="../js/OrbitControls.js"></script>
-			
+		<script src="./js/three.js"></script>
+		<script src="./js/dat.gui.min.js"></script>
+		<script src="./js/OrbitControls.js"></script>
 
 		<script id="vertexShader" type="x-shader/x-vertex">
-
 			uniform mat4 modelMatrix;
 			uniform mat4 viewMatrix;
 			uniform mat4 projectionMatrix;
@@ -36,10 +34,7 @@
 			varying float vDisplace; 
 			varying vec2 vUv;
 
-
-
 			precision mediump float;
-
 
 			void main() {
 		
@@ -51,18 +46,15 @@
 		
 				gl_Position = projectionMatrix  * viewMatrix * modelMatrix  * vec4( newPosition, 1.0 );
 			}
-
 		</script>
 
 		<script id="fragmentShader" type="x-shader/x-fragment">
-
 			precision mediump float;
 
 			uniform sampler2D tGrass, tSnow, tHill;
 
 			varying vec2 vUv;
 			varying float vDisplace; 
-
 
 			void main() {
 
@@ -82,41 +74,33 @@
 		</script>
 
 		<script id="skyboxVS" type="x-shader/x-vertex">
-
 			uniform mat4 modelMatrix;
 			uniform mat4 viewMatrix;
 			uniform mat4 projectionMatrix;
-		
+	
 			attribute vec3 position; 
 		
 			varying vec3 vWorldPosition;
 			
-			void main() {
-		
+			void main() {		
 				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
 				vWorldPosition = worldPosition.xyz;
 		
-				vec4 p = viewMatrix * modelMatrix * vec4(position, 1.0);
+				vec4 p = viewMatrix * modelMatrix * vec4( position, 1.0 );
 				gl_Position = projectionMatrix * p;
-				
 			}
-		
 		</script>
 
-
 		<script id="skyboxFS" type="x-shader/x-fragment">
-
 			precision mediump float;
-			
+		
 			uniform samplerCube tCube;
 
 			varying vec3 vWorldPosition;
 
 			void main() {
-
 				gl_FragColor = textureCube( tCube, vec3(  vWorldPosition.xyz ) );
 			}
-		
 		</script>
 
 		<script>
@@ -135,6 +119,8 @@
 			var texture3 = new THREE.TextureLoader().load( 'blue.jpg' );
 			var texture4 = new THREE.TextureLoader().load( 'metal.jpg' );
 
+			var skyMesh;
+
 			var gui = new dat.GUI( { width: 350 } );
 
 			var options;
@@ -146,7 +132,7 @@
 
 				container = document.getElementById( 'container' );
 
-				camera = new THREE.PerspectiveCamera( 50.0, window.innerWidth / window.innerHeight, 0.1, 50 );
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
 
 				options = {
 					displaceAmount: 1.0
@@ -174,20 +160,17 @@
 					tHill: { type: "t", value: texture4  },
 				};
 
-
 				var material1 = new THREE.RawShaderMaterial( {
-
 					uniforms: uniforms1,
 					vertexShader: vs,
 					fragmentShader: fs,
-
 				} );
 
 				gui.add(options, "displaceAmount", 0, 5);
 
 				var mesh1 = new THREE.Mesh( geometry1, material1 );
 				mesh1.material.side = THREE.DoubleSide;
-				mesh1.rotateX(-Math.PI/3);
+				mesh1.rotateX(-Math.PI/10);
 				scene.add( mesh1 );
 
 				//----------------------CUBE MAP---------------------------------//
@@ -217,7 +200,7 @@
 				cube_material.depthWrite = false;
 				cube_material.side = THREE.BackSide;
 
-				var cube_geometry = new THREE.BoxGeometry( 3000, 3000, 3000 );
+				var cube_geometry = new THREE.BoxGeometry( 2000, 2000, 2000 );
 
 				skyMesh = new THREE.Mesh( cube_geometry, cube_material );
 
@@ -234,7 +217,6 @@
 			}
 
 			function onWindowResize( event ) {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
@@ -242,21 +224,18 @@
 			}
 			
 			function animate() {
-
 				requestAnimationFrame( animate );
 				render();
-
 			}
 
 			function render() {
-
 				var time = performance.now();
 
 				var object0 = scene.children[ 0 ];
 				object0.material.uniforms.displaceAmt.value = 1.0;
 
-				camera.rotation.y = mouseX;// * 3;
-				camera.rotation.x = mouseY;// * 3;
+				camera.rotation.y = mouseX * 3;
+				camera.rotation.x = mouseY * 3;
 
 				renderer.render( scene, camera );
 			}
@@ -267,7 +246,6 @@
 				mouseY = (event.clientY / window.innerHeight) ;
 			}
 		</script>
-
 	</body>
 </html>
 
