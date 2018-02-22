@@ -71,6 +71,53 @@
 			}
 		</script>
 
+		<script id="environmentMapVS" type="x-shader/x-vertex">
+			uniform mat4 modelMatrix;
+			uniform mat4 viewMatrix;
+			uniform mat4 projectionMatrix;
+			uniform vec3 cameraPosition;
+
+			uniform float displaceAmt;
+
+			varying float vDisplace;
+			
+			attribute vec3 position; 
+			attribute vec3 normal; 
+		
+			varying vec3 vI;
+			varying vec3 vWorldNormal;
+		
+			void main() {
+
+				vec3 newPosition = (position.xyz + normal.xyz * vDisplace).xyz;
+
+				vec4 mvPosition = viewMatrix * modelMatrix * vec4( position, 1.0 );
+				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+		
+				vWorldNormal = normalize( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );
+		
+				vI = worldPosition.xyz - cameraPosition;
+		
+				gl_Position = projectionMatrix * mvPosition; // * vec4( newPosition, 1.0 );
+			}	
+		  
+		</script>
+	
+		<script id="environmentMapFS" type="x-shader/x-fragment">
+			precision mediump float;
+	
+			uniform samplerCube envMap;
+	
+			varying vec3 vI;
+			varying vec3 vWorldNormal;
+	
+			void main() {
+				vec3 reflection = reflect( vI, vWorldNormal );
+				vec4 envColor = textureCube( envMap, vec3( -reflection.x, reflection.yz ) );
+				gl_FragColor = vec4(envColor);
+			}
+		</script>
+
 		<script id="skyboxVS" type="x-shader/x-vertex">
 			uniform mat4 modelMatrix;
 			uniform mat4 viewMatrix;
@@ -112,12 +159,15 @@
 			var sb_vs = document.getElementById( 'skyboxVS' ).textContent;
 			var sb_fs = document.getElementById( 'skyboxFS' ).textContent;
 
+			var em_vs = document.getElementById( 'environmentMapVS' ).textContent;
+      		var em_fs = document.getElementById( 'environmentMapFS' ).textContent;
+
 			var texture1 = new THREE.TextureLoader().load( 'science.jpg' );
 			var texture2 = new THREE.TextureLoader().load( 'ice.jpg' );
 			var texture3 = new THREE.TextureLoader().load( 'blue.jpg' );
 			var texture4 = new THREE.TextureLoader().load( 'metal.jpg' );
 
-			var skyMesh;
+			var skyMesh, water;
 
 			var gui = new dat.GUI( { width: 350 } );
 
@@ -167,6 +217,7 @@
 
 				var mesh1 = new THREE.Mesh( geometry1, material1 );
 				mesh1.material.side = THREE.DoubleSide;
+				mesh1.position.y -= 3.7;
 				mesh1.rotateX(-Math.PI/10);
 				scene.add( mesh1 );
 
@@ -201,6 +252,30 @@
 				skyMesh = new THREE.Mesh( cube_geometry, cube_material );
 				
 				scene.add( skyMesh );
+
+				//---------------------Water-----------------------------//
+				
+				var water_uniforms = {
+					tCube: { type: "t", value: cubeMap },
+					displaceAmt: { type: "f", value: 1.0 }
+				};
+
+				var water_material = new THREE.RawShaderMaterial( {
+					uniforms: water_uniforms,
+					side: THREE.DoubleSide,
+					vertexShader: em_vs,
+					fragmentShader: em_fs
+				} );
+
+				var water_mesh = new THREE.PlaneGeometry( 50, 50, 600, 600 );
+				water = new THREE.Mesh(water_mesh, water_material);
+				water.position.z -= 5.0;
+				water.position.y -= 5.0;
+
+				water.rotateX(Math.PI/2);
+				scene.add (water);
+
+				//----------------Renderer--------------------------------//
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setClearColor( 0x999999 );
