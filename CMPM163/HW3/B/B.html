@@ -11,6 +11,20 @@
 		</style>
 	</head>
 	<body>
+        <script id="vertexShader" type="x-shader/x-vertex">
+
+            //Three.js gives us these automatically when a perspective camera is bound to the renderer
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+
+            void main() {
+
+                gl_Position = projectionMatrix * modelViewMatrix; 
+		
+     	    }
+
+        </script>
+        
         <script id="fragmentShader" type="x-shader/x-fragment">
             const int MAX_MARCHING_STEPS = 255;
             const float MIN_DIST = 0.0;
