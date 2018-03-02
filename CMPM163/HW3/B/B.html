@@ -11,6 +11,10 @@
 		</style>
 	</head>
 	<body>
+        <div id="container"></div>
+
+        <script src="./js/three.js"></script>
+
         <script id="vertexShader" type="x-shader/x-vertex">
 
             //Three.js gives us these automatically when a perspective camera is bound to the renderer
@@ -193,6 +197,52 @@
                 
                 fragColor = vec4(color, 1.0);
             }
+        </script>
+
+        <script>
+			var container;
+
+			var camera, scene, renderer;
+
+            init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
+        
+                camera.position.z += 10;
+
+                scene = new THREE.Scene();
+
+                renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0x999999 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+            function onWindowResize( event ) {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+			}
+
+			function render() {
+				var time = performance.now();
+
+                renderer.render( scene, camera );
+			}
         </script>
     </body>
 </html>
